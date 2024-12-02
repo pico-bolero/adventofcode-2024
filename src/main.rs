@@ -1,6 +1,7 @@
 pub mod core;
 pub mod io;
 use crate::core::day01;
+use crate::core::day02;
 use crate::io::data_loader;
 use std::env;
 use std::path::Path;
@@ -26,6 +27,11 @@ fn select_scenario() -> ScenarioConfig {
             file_path: "./data/day01.txt".to_string(),
             process_fn: day01::day01_part2,
         },
+        "day02_part1" => ScenarioConfig {
+            file_path: "./data/day02.txt".to_string(),
+            process_fn: day02::day02_part1,
+        },
+
         _ => {
             panic!("Expected argument like 'day01_part1' and not {}", &args[1]);
         }
