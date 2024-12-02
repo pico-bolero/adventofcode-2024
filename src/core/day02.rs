@@ -11,13 +11,7 @@ pub fn day02_part1_handler(lines: &mut dyn Iterator<Item = String>) -> usize {
 
 fn report_is_safe(input: &String) -> bool {
     let nums: Vec<u32> = parse_str_with_separator(input.as_str(), " ");
-    if is_increasing(&nums) {
-        return true;
-    }
-    if is_decreasing(&nums) {
-        return true;
-    }
-    false
+    is_increasing(&nums) || is_decreasing(&nums)
 }
 
 pub fn is_increasing(input: &Vec<u32>) -> bool {
