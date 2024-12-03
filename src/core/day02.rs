@@ -5,7 +5,7 @@ pub fn day02_part1(lines: &mut dyn Iterator<Item = String>) {
 }
 
 pub fn day02_part1_handler(lines: &mut dyn Iterator<Item = String>) -> usize {
-    let safe_count: usize = lines.filter(report_is_safe).count();
+    let safe_count: usize = lines.filter(|x| report_is_safe(x.as_str())).count();
     safe_count
 }
 
@@ -15,16 +15,16 @@ pub fn day02_part2(lines: &mut dyn Iterator<Item = String>) {
 }
 
 pub fn day02_part2_handler(lines: &mut dyn Iterator<Item = String>) -> usize {
-    let safe_count: usize = lines.filter(report_is_safe2).count();
+    let safe_count: usize = lines.filter(|x| report_is_safe2(x.as_str())).count();
     safe_count
 }
 
-fn report_is_safe(input: &String) -> bool {
-    let nums: Vec<u32> = parse_str_with_separator(input.as_str(), " ");
+fn report_is_safe(input: &str) -> bool {
+    let nums: Vec<u32> = parse_str_with_separator(input, " ");
     is_increasing(&nums) || is_decreasing(&nums)
 }
 
-pub fn is_increasing(input: &Vec<u32>) -> bool {
+pub fn is_increasing(input: &[u32]) -> bool {
     let result = input
         .iter()
         .zip(input.iter().skip(1))
@@ -34,7 +34,7 @@ pub fn is_increasing(input: &Vec<u32>) -> bool {
     input.len() - 1 == result.len()
 }
 
-pub fn is_decreasing(input: &Vec<u32>) -> bool {
+pub fn is_decreasing(input: &[u32]) -> bool {
     let result = input
         .iter()
         .zip(input.iter().skip(1))
@@ -44,8 +44,8 @@ pub fn is_decreasing(input: &Vec<u32>) -> bool {
     input.len() - 1 == result.len()
 }
 
-fn report_is_safe2(input: &String) -> bool {
-    let nums: Vec<u32> = parse_str_with_separator(input.as_str(), " ");
+fn report_is_safe2(input: &str) -> bool {
+    let nums: Vec<u32> = parse_str_with_separator(input, " ");
     if is_increasing(&nums) || is_decreasing(&nums) {
         return true;
     }
