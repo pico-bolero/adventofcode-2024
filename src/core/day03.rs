@@ -16,7 +16,10 @@ fn day03_part1_handler(lines: &mut dyn Iterator<Item = String>) -> u32 {
 }
 
 fn day03_part2_handler(lines: &mut dyn Iterator<Item = String>) -> u32 {
-    lines.map(line_value2).sum()
+    let joined = lines
+        .map(|x| x.trim().to_string())
+        .reduce(|a, b| format!("{}{}", a, b));
+    line_value2(joined.unwrap())
 }
 
 fn line_value(line: String) -> u32 {
