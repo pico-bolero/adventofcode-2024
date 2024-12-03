@@ -9,6 +9,16 @@ pub fn day02_part1_handler(lines: &mut dyn Iterator<Item = String>) -> usize {
     safe_count
 }
 
+pub fn day02_part2(lines: &mut dyn Iterator<Item = String>) {
+    let safe_count: usize = day02_part2_handler(lines);
+    println!("Sum {}", safe_count);
+}
+
+pub fn day02_part2_handler(lines: &mut dyn Iterator<Item = String>) -> usize {
+    let safe_count: usize = lines.filter(report_is_safe2).count();
+    safe_count
+}
+
 fn report_is_safe(input: &String) -> bool {
     let nums: Vec<u32> = parse_str_with_separator(input.as_str(), " ");
     is_increasing(&nums) || is_decreasing(&nums)
@@ -32,6 +42,24 @@ pub fn is_decreasing(input: &Vec<u32>) -> bool {
         .filter(|(a, b)| a > b && a - b > 0 && a - b <= 3)
         .collect::<Vec<_>>();
     input.len() - 1 == result.len()
+}
+
+fn report_is_safe2(input: &String) -> bool {
+    let nums: Vec<u32> = parse_str_with_separator(input.as_str(), " ");
+    if is_increasing(&nums) || is_decreasing(&nums) {
+        return true;
+    }
+    // Try other combinations by running the same sequence but removing one of the numbers from the sequence
+    let mut rng = 0..nums.len();
+    rng.any(|idx| {
+        let sub_nums: Vec<u32> = nums
+            .iter()
+            .enumerate()
+            .filter(|(i, _val)| idx != *i)
+            .map(|(_i, val)| *val)
+            .collect();
+        is_increasing(&sub_nums) || is_decreasing(&sub_nums)
+    })
 }
 
 pub fn parse_str_with_separator(input: &str, delimiter: &str) -> Vec<u32> {
@@ -63,10 +91,17 @@ mod tests {
     }
 
     #[test]
-    fn test_day02_par1_handler() {
+    fn test_day02_part1_handler() {
         let lines = sample_data();
         let calculated = day02_part1_handler(&mut lines.iter().map(|x| x.to_string()));
         assert_eq!(2, calculated);
+    }
+
+    #[test]
+    fn test_day02_part2_handler() {
+        let lines = sample_data();
+        let calculated = day02_part2_handler(&mut lines.iter().map(|x| x.to_string()));
+        assert_eq!(4, calculated);
     }
 
     #[test]
