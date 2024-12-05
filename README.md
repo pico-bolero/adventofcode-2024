@@ -18,3 +18,10 @@ This first entry was pretty straightfoward if you knew how to unzip, sort, and z
 # Day 03 - Summary
 
 - I struggled with part2. All my logic seemed correct, but I had been working under the assumption that the state resets for each line. That is not correct.
+
+# Day 04 - Summary
+
+## Lessons Learned
+
+- The scanning window implementation seemed to work well. However, the window needed to be 7x7 so that the centerpoint could radiate out to check all the matches. Checkng every match in the window was a failure.
+- I'm debating on wether padding the input vertically and horizontally would be useful versus handling the edges.
