@@ -1,3 +1,4 @@
+use crate::core::parser;
 use std::collections::{HashMap, HashSet};
 
 /// Receives input and prints output
@@ -100,7 +101,7 @@ fn extract_orders(lines: &mut (dyn Iterator<Item = String>)) -> Vec<Vec<u32>> {
             if x.is_empty() {
                 None
             } else {
-                Some(parse_delimited_str::<u32>(x.as_str(), ","))
+                Some(parser::parse_delimited_str::<u32>(x.as_str(), ","))
             }
         })
         .collect();
@@ -111,7 +112,7 @@ fn extract_rules(lines: &mut (dyn Iterator<Item = String>)) -> HashMap<u32, Page
     let mut rules: HashMap<u32, PageRules> = HashMap::new();
     lines
         .take_while(|x| x.as_str() != "\n")
-        .map(|x| parse_delimited_str::<u32>(x.as_str(), "|"))
+        .map(|x| parser::parse_delimited_str::<u32>(x.as_str(), "|"))
         .flat_map(|v| {
             if v.len() == 2 {
                 return Ok(v);
@@ -149,14 +150,6 @@ enum Rule {
 
 struct PageRules {
     rules: Vec<Rule>,
-}
-
-/// Splits and parses a string into the types
-fn parse_delimited_str<T: std::str::FromStr>(input: &str, delimiter: &str) -> Vec<T> {
-    input
-        .split(delimiter)
-        .flat_map(|x| x.parse::<T>())
-        .collect()
 }
 
 #[cfg(test)]
@@ -215,16 +208,5 @@ mod tests {
     #[test]
     fn test_extract_middle() {
         assert_eq!(Some(7), extract_middle(&vec![1, 3, 5, 7, 9, 11, 13]))
-    }
-
-    #[test]
-    fn test_parse_delimited_str() {
-        assert_eq!(vec![0, 1, 2], parse_delimited_str("0,1,2", ","));
-        assert_eq!(vec![0, 1, 2], parse_delimited_str("0|1|2", "|"));
-        assert_eq!(vec![0u64, 1u64, 2u64], parse_delimited_str("0|1|2", "|"));
-        assert_eq!(
-            vec![0i32, -1i32, -2i32],
-            parse_delimited_str("0\t-1\t-2", "\t")
-        );
     }
 }

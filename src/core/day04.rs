@@ -1,59 +1,9 @@
+use crate::core::row_scan::RowScan;
+
 /// Receives input and prints output
 pub fn day04_part1(lines: &mut dyn Iterator<Item = String>) {
     let result: u32 = day04_part1_handler(lines);
     println!("Sum {}", result);
-}
-
-#[derive(Debug, Eq, PartialEq, Clone)]
-struct ScanArea {
-    size: usize,
-    lines: Vec<Option<String>>,
-}
-
-impl ScanArea {
-    fn new(size: usize) -> ScanArea {
-        let mut lines: Vec<Option<String>> = vec![];
-        for _ in 0..size {
-            lines.push(None);
-        }
-        ScanArea { size, lines }
-    }
-
-    /// Returns a new ScanArea by cloning the elements of the current
-    /// ScanArea and shifting all the elements to the next position.
-    fn shift(&mut self, line: Option<String>) {
-        self.lines.remove(0);
-        self.lines.push(line);
-    }
-
-    /// Returns a new ScanArea by cloning the elements of the current
-    /// ScanArea and shifting all the elements to the next position.
-    #[allow(dead_code)]
-    fn shift_new(&self, line: Option<String>) -> ScanArea {
-        let mut lines: Vec<Option<String>> = self.lines.iter().skip(1).cloned().collect();
-        lines.push(line);
-        ScanArea {
-            size: self.size,
-            lines,
-        }
-    }
-
-    /// See if every line has data
-    fn is_full(&self) -> bool {
-        self.lines.iter().all(|x| x.is_some())
-    }
-
-    fn data_width(&self) -> usize {
-        let x = self
-            .lines
-            .iter()
-            .map(|x| match x {
-                Some(x) => x.chars().count(),
-                None => 0usize,
-            })
-            .reduce(|acc, x| acc.max(x));
-        x.unwrap_or_default()
-    }
 }
 
 #[derive(Eq, PartialEq, Debug)]
@@ -90,13 +40,13 @@ fn day04_part1_handler(lines: &mut (dyn Iterator<Item = String>)) -> u32 {
     */
     let mut total: u32 = 0;
     let box_size: usize = 4;
-    let mut scan = ScanArea::new(box_size);
+    let mut scan = RowScan::new(box_size);
     for _ in 0..box_size {
         scan.shift(lines.next());
     }
 
     while scan.is_full() {
-        for i in 0..scan.data_width() - box_size {
+        for i in 0..scan.max_data_width() - box_size {
             let mut rows: Vec<Vec<char>> = vec![];
             for row in scan.lines[0..box_size].iter() {
                 let r: Vec<char> = row
