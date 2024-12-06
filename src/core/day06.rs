@@ -2,14 +2,40 @@ use std::collections::HashSet;
 
 /// Receives input and prints output
 pub fn day06_part1(lines: &mut dyn Iterator<Item = String>) {
-    let result: u32 = day06_part1_handler(lines);
+    let result: usize = day06_part1_handler(lines);
     println!("Sum {}", result);
 }
 
-fn day06_part1_handler(lines: &mut (dyn Iterator<Item = String>)) -> u32 {
+fn day06_part1_handler(lines: &mut (dyn Iterator<Item = String>)) -> usize {
     let mut visited: HashSet<(isize, isize)> = HashSet::new();
-    let (actor, bounds, objects) = extract_actor_bounds_and_objects(lines);
-    0u32
+    let (mut actor, bounds, objects) = extract_actor_bounds_and_objects(lines);
+    let mut d = Direction::NORTH;
+
+    // Actor position and direction should be in a struct together
+
+    while in_bounds(actor, bounds) {
+        visited.insert(actor);
+        if is_facing_object(&actor, &d, &objects) {
+            d = d.turn_right();
+        }
+        actor = d.step(actor);
+    }
+    visited.len()
+}
+
+/// If the next step would touch an object, then the actor is facing an object
+fn is_facing_object(
+    actor: &(isize, isize),
+    d: &Direction,
+    objects: &HashSet<(isize, isize)>,
+) -> bool {
+    let next_step = d.step(*actor);
+    objects.contains(&next_step)
+}
+
+/// checks the bounds which are integer values. Negative is out of bounds
+fn in_bounds(actor: (isize, isize), bounds: (isize, isize)) -> bool {
+    0 <= actor.0 && actor.0 <= bounds.0 && 0 <= actor.1 && actor.1 <= bounds.1
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -91,8 +117,8 @@ mod tests {
     #[test]
     fn test_day06_part1_handler() {
         let lines = sample_data();
-        // let calculated = day06_part1_handler(&mut lines.iter().map(|x| x.to_string()));
-        // assert_eq!(143, calculated);
+        let calculated = day06_part1_handler(&mut lines.iter().map(|x| x.to_string()));
+        assert_eq!(41, calculated);
     }
 
     #[test]
@@ -134,5 +160,51 @@ mod tests {
         assert_eq!(dir, Direction::SOUTH);
         point = dir.step(point);
         assert_eq!((1, 1), point);
+    }
+
+    #[test]
+    fn test_in_bounds() {
+        let actor = (0isize, 0isize);
+        let bounds = (2isize, 2isize);
+        assert!(in_bounds(actor, bounds));
+
+        let actor = (2isize, 2isize);
+        let bounds = (2isize, 2isize);
+        assert!(in_bounds(actor, bounds));
+
+        // Out of bounds
+        let actor = (-1isize, 0isize);
+        assert!(!in_bounds(actor, bounds));
+
+        let actor = (0isize, -1isize);
+        assert!(!in_bounds(actor, bounds));
+
+        let actor = (3isize, 0isize);
+        assert!(!in_bounds(actor, bounds));
+
+        let actor = (0isize, 3isize);
+        assert!(!in_bounds(actor, bounds));
+    }
+
+    #[test]
+    fn test_is_facing_object() {
+        let mut objects: HashSet<(isize, isize)> = HashSet::new();
+
+        let actor = (1isize, 1isize);
+        // Not facing anything
+        assert!(!is_facing_object(&actor, &Direction::NORTH, &objects));
+        assert!(!is_facing_object(&actor, &Direction::SOUTH, &objects));
+        assert!(!is_facing_object(&actor, &Direction::EAST, &objects));
+        assert!(!is_facing_object(&actor, &Direction::WEST, &objects));
+
+        // facing everything!
+        objects.insert((0, 1));
+        objects.insert((1, 0));
+        objects.insert((2, 1));
+        objects.insert((1, 2));
+        assert!(is_facing_object(&actor, &Direction::NORTH, &objects));
+        assert!(is_facing_object(&actor, &Direction::SOUTH, &objects));
+        assert!(is_facing_object(&actor, &Direction::EAST, &objects));
+        assert!(is_facing_object(&actor, &Direction::WEST, &objects));
     }
 }
