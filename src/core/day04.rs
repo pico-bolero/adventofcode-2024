@@ -1,4 +1,4 @@
-use crate::core::row_scan::RowScan;
+use crate::core::scan_row::RowScan;
 
 /// Receives input and prints output
 pub fn day04_part1(lines: &mut dyn Iterator<Item = String>) {

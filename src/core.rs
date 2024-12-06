@@ -5,4 +5,4 @@ pub mod day04;
 pub mod day05;
 pub mod day06;
 pub mod parser;
-pub mod row_scan;
+pub mod scan_row;
