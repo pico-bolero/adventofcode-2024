@@ -6,6 +6,12 @@ pub fn day05_part1(lines: &mut dyn Iterator<Item = String>) {
     println!("Sum {}", result);
 }
 
+/// Receives input and prints output
+pub fn day05_part2(lines: &mut dyn Iterator<Item = String>) {
+    let result: u32 = day05_part2_handler(lines);
+    println!("Sum {}", result);
+}
+
 fn day05_part1_handler(lines: &mut (dyn Iterator<Item = String>)) -> u32 {
     /*
     The data intially comes into two chunks. Please on a double return.
@@ -18,13 +24,47 @@ fn day05_part1_handler(lines: &mut (dyn Iterator<Item = String>)) -> u32 {
     let result: u32 = orders
         .iter()
         .filter(|order| is_valid_order(order, &rules))
-        .map(|x| extract_middle::<u32>(x))
-        .flatten()
+        .filter_map(|x| extract_middle::<u32>(x))
         .sum();
     result
 }
 
-fn extract_middle<T: Copy>(v: &Vec<T>) -> Option<T> {
+fn day05_part2_handler(lines: &mut (dyn Iterator<Item = String>)) -> u32 {
+    /*
+    The data intially comes into two chunks. Please on a double return.
+        1. process chunk 1 into rules
+        2. process chunk 2 into the data to validate
+    */
+    let all_lines: Vec<String> = lines.collect();
+    let rules = extract_rules(&mut all_lines.iter().map(|x| x.to_string()));
+    let orders = extract_orders(&mut all_lines.iter().map(|x| x.to_string()));
+    let result: u32 = orders
+        .iter()
+        .filter(|order| !is_valid_order(order, &rules))
+        .map(|x| sort_for_rules(x, &rules))
+        .filter_map(|x| extract_middle::<u32>(&x))
+        .sum();
+    result
+}
+
+fn sort_for_rules(pages: &[u32], all_rules: &HashMap<u32, PageRules>) -> Vec<u32> {
+    let mut result: Vec<u32> = vec![];
+    pages.iter().for_each(|x| {
+        for i in 0..pages.len() {
+            result.insert(i, *x);
+            if is_valid_order(&result, all_rules) {
+                break;
+            } else {
+                // undo the last insert and try again
+                // I am embrassed by my brute force.
+                result.remove(i);
+            }
+        }
+    });
+    result
+}
+
+fn extract_middle<T: Copy>(v: &[T]) -> Option<T> {
     if v.len() % 2 == 0 {
         None // No even numers
     } else {
@@ -44,7 +84,7 @@ fn is_valid_order(pages: &[u32], all_rules: &HashMap<u32, PageRules>) -> bool {
         if let Some(page_rules) = all_rules.get(x) {
             let rules = &page_rules.rules;
             let passed_rules = rules.iter().all(|rule| match rule {
-                Rule::ExistsBefore { page } => seen.get(page).is_none(),
+                Rule::ExistsBefore { page } => !seen.contains(page),
             });
             passed_rules
         } else {
@@ -55,15 +95,14 @@ fn is_valid_order(pages: &[u32], all_rules: &HashMap<u32, PageRules>) -> bool {
 
 fn extract_orders(lines: &mut (dyn Iterator<Item = String>)) -> Vec<Vec<u32>> {
     let _orders: Vec<Vec<u32>> = lines
-        .skip_while(|x| *x != "")
-        .map(|x| {
-            if x == "" {
+        .skip_while(|x| !x.is_empty())
+        .filter_map(|x| {
+            if x.is_empty() {
                 None
             } else {
                 Some(parse_delimited_str::<u32>(x.as_str(), ","))
             }
         })
-        .flatten()
         .collect();
     _orders
 }
@@ -71,15 +110,14 @@ fn extract_orders(lines: &mut (dyn Iterator<Item = String>)) -> Vec<Vec<u32>> {
 fn extract_rules(lines: &mut (dyn Iterator<Item = String>)) -> HashMap<u32, PageRules> {
     let mut rules: HashMap<u32, PageRules> = HashMap::new();
     lines
-        .take_while(|x| *x != "\n".to_string())
+        .take_while(|x| x.as_str() != "\n")
         .map(|x| parse_delimited_str::<u32>(x.as_str(), "|"))
-        .map(|v| {
+        .flat_map(|v| {
             if v.len() == 2 {
                 return Ok(v);
             }
             Err(())
         })
-        .flatten()
         .for_each(|v| {
             let key = v[0];
             let value = v[1];
@@ -91,13 +129,12 @@ fn extract_rules(lines: &mut (dyn Iterator<Item = String>)) -> HashMap<u32, Page
                     let opt = rules.insert(
                         key,
                         PageRules {
-                            page: key,
                             rules: vec![Rule::ExistsBefore { page: value }],
                         },
                     );
                     match opt {
                         None => { /* this is expected */ }
-                        Some(x) => {
+                        Some(_) => {
                             panic!("unexpected existing rule")
                         }
                     }
@@ -111,7 +148,6 @@ enum Rule {
 }
 
 struct PageRules {
-    page: u32,
     rules: Vec<Rule>,
 }
 
@@ -119,8 +155,7 @@ struct PageRules {
 fn parse_delimited_str<T: std::str::FromStr>(input: &str, delimiter: &str) -> Vec<T> {
     input
         .split(delimiter)
-        .map(|x| x.parse::<T>())
-        .flatten()
+        .flat_map(|x| x.parse::<T>())
         .collect()
 }
 
@@ -168,6 +203,13 @@ mod tests {
         let lines = sample_data();
         let calculated = day05_part1_handler(&mut lines.iter().map(|x| x.to_string()));
         assert_eq!(143, calculated);
+    }
+
+    #[test]
+    fn test_day05_part2_handler() {
+        let lines = sample_data();
+        let calculated = day05_part2_handler(&mut lines.iter().map(|x| x.to_string()));
+        assert_eq!(123, calculated);
     }
 
     #[test]
