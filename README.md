@@ -29,3 +29,7 @@ This first entry was pretty straightfoward if you knew how to unzip, sort, and z
 ## Day 05 - Summary
 
 - Parsing remains challenging. This one required chunking the input into two segments. Consuming an iterator didn't make that easy. I could use a function that chunks an iterator into vectors based on a chunk separator
+
+## Day 06 - Summary
+
+- Always test your functions even if they look easy. You messed them up, I gurantee it.
