@@ -7,20 +7,43 @@ pub fn day06_part1(lines: &mut dyn Iterator<Item = String>) {
 }
 
 fn day06_part1_handler(lines: &mut (dyn Iterator<Item = String>)) -> usize {
-    let mut visited: HashSet<(isize, isize)> = HashSet::new();
+    let path = extract_path(lines);
+    let visited: HashSet<(isize, isize)> = path.iter().map(|w| w.point).collect();
+    visited.len()
+}
+
+pub fn day06_part2(lines: &mut dyn Iterator<Item = String>) {
+    let result: usize = day06_part2_handler(lines);
+    println!("Sum {}", result);
+}
+
+struct WayPoint {
+    point: (isize, isize),
+    direction: Direction,
+}
+
+fn day06_part2_handler(lines: &mut (dyn Iterator<Item = String>)) -> usize {
+    let path = extract_path(lines);
+    let visited: HashSet<(isize, isize)> = path.iter().map(|w| w.point).collect();
+    visited.len()
+}
+
+fn extract_path(lines: &mut (dyn Iterator<Item = String>)) -> Vec<WayPoint> {
+    let mut path: Vec<WayPoint> = vec![];
     let (mut actor, bounds, objects) = extract_actor_bounds_and_objects(lines);
     let mut d = Direction::NORTH;
 
-    // Actor position and direction should be in a struct together
-
     while in_bounds(actor, bounds) {
-        visited.insert(actor);
+        path.push(WayPoint {
+            point: actor,
+            direction: d,
+        });
         if is_facing_object(&actor, &d, &objects) {
             d = d.turn_right();
         }
         actor = d.step(actor);
     }
-    visited.len()
+    path
 }
 
 /// If the next step would touch an object, then the actor is facing an object
@@ -38,7 +61,7 @@ fn in_bounds(actor: (isize, isize), bounds: (isize, isize)) -> bool {
     0 <= actor.0 && actor.0 <= bounds.0 && 0 <= actor.1 && actor.1 <= bounds.1
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
 enum Direction {
     NORTH,
     SOUTH,
