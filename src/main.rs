@@ -72,10 +72,10 @@ fn select_scenario() -> ScenarioConfig {
             file_path: "./data/day07.txt".to_string(),
             process_fn: day07::day07_part1,
         },
-        //"day07_part2" => ScenarioConfig {
-        //    file_path: "./data/day07.txt".to_string(),
-        //    process_fn: day07::day07_part2,
-        //},
+        "day07_part2" => ScenarioConfig {
+            file_path: "./data/day07.txt".to_string(),
+            process_fn: day07::day07_part2,
+        },
         _ => {
             panic!("Expected argument like 'day01_part1' and not {}", &args[1]);
         }
