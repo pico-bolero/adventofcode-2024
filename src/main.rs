@@ -6,6 +6,7 @@ use crate::core::day03;
 use crate::core::day04;
 use crate::core::day05;
 use crate::core::day06;
+use crate::core::day07;
 use crate::io::data_loader;
 use std::env;
 use std::path::Path;
@@ -67,6 +68,14 @@ fn select_scenario() -> ScenarioConfig {
             file_path: "./data/day06.txt".to_string(),
             process_fn: day06::day06_part2,
         },
+        "day07_part1" => ScenarioConfig {
+            file_path: "./data/day07.txt".to_string(),
+            process_fn: day07::day07_part1,
+        },
+        //"day07_part2" => ScenarioConfig {
+        //    file_path: "./data/day07.txt".to_string(),
+        //    process_fn: day07::day07_part2,
+        //},
         _ => {
             panic!("Expected argument like 'day01_part1' and not {}", &args[1]);
         }
