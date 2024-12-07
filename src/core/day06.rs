@@ -7,7 +7,7 @@ pub fn day06_part1(lines: &mut dyn Iterator<Item = String>) {
 }
 
 fn day06_part1_handler(lines: &mut (dyn Iterator<Item = String>)) -> usize {
-    let (path, _exit, _bounds, _objects) = walking_path_scenario(lines);
+    let (path, _bounds, _objects) = walking_path_scenario(lines);
     let path = path.expect("Part 1 is doesn't fail");
     let visited: HashSet<(isize, isize)> = path.iter().map(|w| w.point).collect();
     visited.len()
@@ -23,14 +23,15 @@ fn day06_part2_handler(lines: &mut (dyn Iterator<Item = String>)) -> usize {
     let all_lines: Vec<String> = lines.collect();
 
     // Get the initial successful path
-    let (path, _exit, bounds, mut objects) =
+    let (path, bounds, objects) =
         walking_path_scenario(&mut all_lines.iter().map(|x| x.to_string()));
     let path = path.expect("Part 1 is doesn't fail");
     let actor = path[0].point;
+    let visited: HashSet<(isize, isize)> = path.iter().map(|w| w.point).collect();
+    println!("Sum {}", visited.len());
 
     // walk backwards each step through the waypoints
     // the path already has every waypoint
-    // let steps: Vec<WayPoint> = backwards_steps(path.clone(), exit.clone());
 
     let mut steps = path.clone();
     steps.reverse();
@@ -39,9 +40,14 @@ fn day06_part2_handler(lines: &mut (dyn Iterator<Item = String>)) -> usize {
 
     steps.iter().for_each(|step| {
         // replace the current point with an obstruction and walk the path
-        objects.insert(step.point);
-        let path_info = calculate_path(actor, bounds, &objects);
-        objects.remove(&step.point);
+        let mut local_objects = objects.clone();
+        if !local_objects.insert(step.point) {
+            panic!(
+                "There should not have been an object in the path: {:?}",
+                step
+            );
+        }
+        let path_info = calculate_path(actor, bounds, &local_objects);
 
         // When there is no path info, there is a cycle. Add the step as a result
         if path_info.is_none() {
@@ -61,22 +67,21 @@ fn walking_path_scenario(
     lines: &mut (dyn Iterator<Item = String>),
 ) -> (
     Option<Vec<WayPoint>>,
-    Option<WayPoint>,
     (isize, isize),
     HashSet<(isize, isize)>,
 ) {
     let (actor, bounds, objects) = extract_actor_bounds_and_objects(lines);
-    if let Some((path, exit)) = calculate_path(actor, bounds, &objects) {
-        return (Some(path), Some(exit), bounds, objects);
+    if let Some(path) = calculate_path(actor, bounds, &objects) {
+        return (Some(path), bounds, objects);
     }
-    (None, None, bounds, objects)
+    (None, bounds, objects)
 }
 
 fn calculate_path(
     mut actor: (isize, isize),
     bounds: (isize, isize),
     objects: &HashSet<(isize, isize)>,
-) -> Option<(Vec<WayPoint>, WayPoint)> {
+) -> Option<Vec<WayPoint>> {
     let mut path = vec![];
     let mut visited: HashSet<WayPoint> = HashSet::new();
     let mut d = Direction::North;
@@ -93,19 +98,13 @@ fn calculate_path(
         }
 
         path.push(way_point);
-        if is_facing_object(&actor, &d, objects) {
+        while is_facing_object(&actor, &d, objects) {
             d = d.turn_right();
         }
         actor = d.step(actor);
     }
 
-    // Exit Point
-    let exit = WayPoint {
-        direction: d,
-        point: d.step_backward(actor),
-    };
-
-    Some((path, exit))
+    Some(path)
 }
 
 /// If the next step would touch an object, then the actor is facing an object
@@ -141,15 +140,6 @@ impl Direction {
         }
     }
 
-    fn step_backward(&self, (x, y): (isize, isize)) -> (isize, isize) {
-        match *self {
-            Direction::North => (x, y + 1),
-            Direction::South => (x, y - 1),
-            Direction::East => (x - 1, y),
-            Direction::West => (x + 1, y),
-        }
-    }
-
     fn turn_right(&self) -> Direction {
         match *self {
             Direction::North => Direction::East,
@@ -159,7 +149,7 @@ impl Direction {
         }
     }
 
-    fn turn_left(&self) -> Direction {
+    fn _turn_left(&self) -> Direction {
         match *self {
             Direction::North => Direction::West,
             Direction::West => Direction::South,
@@ -269,24 +259,6 @@ mod tests {
         dir = dir.turn_right();
         assert_eq!(dir, Direction::South);
         point = dir.step(point);
-        assert_eq!((1, 1), point);
-
-        point = dir.step_backward(point);
-        assert_eq!((1, 0), point);
-
-        dir = dir.turn_left();
-        assert_eq!(dir, Direction::East);
-        point = dir.step_backward(point);
-        assert_eq!((0, 0), point);
-
-        dir = dir.turn_left();
-        assert_eq!(dir, Direction::North);
-        point = dir.step_backward(point);
-        assert_eq!((0, 1), point);
-
-        dir = dir.turn_left();
-        assert_eq!(dir, Direction::West);
-        point = dir.step_backward(point);
         assert_eq!((1, 1), point);
     }
 
