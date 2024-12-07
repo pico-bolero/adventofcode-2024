@@ -23,7 +23,7 @@ fn day06_part2_handler(lines: &mut (dyn Iterator<Item = String>)) -> usize {
     let all_lines: Vec<String> = lines.collect();
 
     // Get the initial successful path
-    let (path, exit, bounds, mut objects) =
+    let (path, _exit, bounds, mut objects) =
         walking_path_scenario(&mut all_lines.iter().map(|x| x.to_string()));
     let path = path.expect("Part 1 is doesn't fail");
     let actor = path[0].point;
@@ -79,7 +79,7 @@ fn calculate_path(
 ) -> Option<(Vec<WayPoint>, WayPoint)> {
     let mut path = vec![];
     let mut visited: HashSet<WayPoint> = HashSet::new();
-    let mut d = Direction::NORTH;
+    let mut d = Direction::North;
 
     while in_bounds(actor, bounds) {
         let way_point = WayPoint {
@@ -93,7 +93,7 @@ fn calculate_path(
         }
 
         path.push(way_point);
-        if is_facing_object(&actor, &d, &objects) {
+        if is_facing_object(&actor, &d, objects) {
             d = d.turn_right();
         }
         actor = d.step(actor);
@@ -125,46 +125,46 @@ fn in_bounds(actor: (isize, isize), bounds: (isize, isize)) -> bool {
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy, Hash)]
 enum Direction {
-    NORTH,
-    SOUTH,
-    EAST,
-    WEST,
+    North,
+    South,
+    East,
+    West,
 }
 
 impl Direction {
     fn step(&self, (x, y): (isize, isize)) -> (isize, isize) {
         match *self {
-            Direction::NORTH => (x, y - 1),
-            Direction::SOUTH => (x, y + 1),
-            Direction::EAST => (x + 1, y),
-            Direction::WEST => (x - 1, y),
+            Direction::North => (x, y - 1),
+            Direction::South => (x, y + 1),
+            Direction::East => (x + 1, y),
+            Direction::West => (x - 1, y),
         }
     }
 
     fn step_backward(&self, (x, y): (isize, isize)) -> (isize, isize) {
         match *self {
-            Direction::NORTH => (x, y + 1),
-            Direction::SOUTH => (x, y - 1),
-            Direction::EAST => (x - 1, y),
-            Direction::WEST => (x + 1, y),
+            Direction::North => (x, y + 1),
+            Direction::South => (x, y - 1),
+            Direction::East => (x - 1, y),
+            Direction::West => (x + 1, y),
         }
     }
 
     fn turn_right(&self) -> Direction {
         match *self {
-            Direction::NORTH => Direction::EAST,
-            Direction::EAST => Direction::SOUTH,
-            Direction::SOUTH => Direction::WEST,
-            Direction::WEST => Direction::NORTH,
+            Direction::North => Direction::East,
+            Direction::East => Direction::South,
+            Direction::South => Direction::West,
+            Direction::West => Direction::North,
         }
     }
 
     fn turn_left(&self) -> Direction {
         match *self {
-            Direction::NORTH => Direction::WEST,
-            Direction::WEST => Direction::SOUTH,
-            Direction::SOUTH => Direction::EAST,
-            Direction::EAST => Direction::NORTH,
+            Direction::North => Direction::West,
+            Direction::West => Direction::South,
+            Direction::South => Direction::East,
+            Direction::East => Direction::North,
         }
     }
 }
@@ -249,25 +249,25 @@ mod tests {
     #[test]
     fn test_directions() {
         let mut point = (1isize, 1isize);
-        let mut dir = Direction::SOUTH;
+        let mut dir = Direction::South;
 
         dir = dir.turn_right();
-        assert_eq!(dir, Direction::WEST);
+        assert_eq!(dir, Direction::West);
         point = dir.step(point);
         assert_eq!((0, 1), point);
 
         dir = dir.turn_right();
-        assert_eq!(dir, Direction::NORTH);
+        assert_eq!(dir, Direction::North);
         point = dir.step(point);
         assert_eq!((0, 0), point);
 
         dir = dir.turn_right();
-        assert_eq!(dir, Direction::EAST);
+        assert_eq!(dir, Direction::East);
         point = dir.step(point);
         assert_eq!((1, 0), point);
 
         dir = dir.turn_right();
-        assert_eq!(dir, Direction::SOUTH);
+        assert_eq!(dir, Direction::South);
         point = dir.step(point);
         assert_eq!((1, 1), point);
 
@@ -275,17 +275,17 @@ mod tests {
         assert_eq!((1, 0), point);
 
         dir = dir.turn_left();
-        assert_eq!(dir, Direction::EAST);
+        assert_eq!(dir, Direction::East);
         point = dir.step_backward(point);
         assert_eq!((0, 0), point);
 
         dir = dir.turn_left();
-        assert_eq!(dir, Direction::NORTH);
+        assert_eq!(dir, Direction::North);
         point = dir.step_backward(point);
         assert_eq!((0, 1), point);
 
         dir = dir.turn_left();
-        assert_eq!(dir, Direction::WEST);
+        assert_eq!(dir, Direction::West);
         point = dir.step_backward(point);
         assert_eq!((1, 1), point);
     }
@@ -320,19 +320,19 @@ mod tests {
 
         let actor = (1isize, 1isize);
         // Not facing anything
-        assert!(!is_facing_object(&actor, &Direction::NORTH, &objects));
-        assert!(!is_facing_object(&actor, &Direction::SOUTH, &objects));
-        assert!(!is_facing_object(&actor, &Direction::EAST, &objects));
-        assert!(!is_facing_object(&actor, &Direction::WEST, &objects));
+        assert!(!is_facing_object(&actor, &Direction::North, &objects));
+        assert!(!is_facing_object(&actor, &Direction::South, &objects));
+        assert!(!is_facing_object(&actor, &Direction::East, &objects));
+        assert!(!is_facing_object(&actor, &Direction::West, &objects));
 
         // facing everything!
         objects.insert((0, 1));
         objects.insert((1, 0));
         objects.insert((2, 1));
         objects.insert((1, 2));
-        assert!(is_facing_object(&actor, &Direction::NORTH, &objects));
-        assert!(is_facing_object(&actor, &Direction::SOUTH, &objects));
-        assert!(is_facing_object(&actor, &Direction::EAST, &objects));
-        assert!(is_facing_object(&actor, &Direction::WEST, &objects));
+        assert!(is_facing_object(&actor, &Direction::North, &objects));
+        assert!(is_facing_object(&actor, &Direction::South, &objects));
+        assert!(is_facing_object(&actor, &Direction::East, &objects));
+        assert!(is_facing_object(&actor, &Direction::West, &objects));
     }
 }
