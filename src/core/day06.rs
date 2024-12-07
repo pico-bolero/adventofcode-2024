@@ -7,7 +7,8 @@ pub fn day06_part1(lines: &mut dyn Iterator<Item = String>) {
 }
 
 fn day06_part1_handler(lines: &mut (dyn Iterator<Item = String>)) -> usize {
-    let path = extract_path(lines);
+    let (path, _exit, _bounds, _objects) = walking_path_scenario(lines);
+    let path = path.expect("Part 1 is doesn't fail");
     let visited: HashSet<(isize, isize)> = path.iter().map(|w| w.point).collect();
     visited.len()
 }
@@ -17,33 +18,94 @@ pub fn day06_part2(lines: &mut dyn Iterator<Item = String>) {
     println!("Sum {}", result);
 }
 
+fn day06_part2_handler(lines: &mut (dyn Iterator<Item = String>)) -> usize {
+    // Need to cycle through these many times, so pull it into memory
+    let all_lines: Vec<String> = lines.collect();
+
+    // Get the initial successful path
+    let (path, exit, bounds, mut objects) =
+        walking_path_scenario(&mut all_lines.iter().map(|x| x.to_string()));
+    let path = path.expect("Part 1 is doesn't fail");
+    let actor = path[0].point;
+
+    // walk backwards each step through the waypoints
+    // the path already has every waypoint
+    // let steps: Vec<WayPoint> = backwards_steps(path.clone(), exit.clone());
+
+    let mut steps = path.clone();
+    steps.reverse();
+
+    let mut cycle_causing_objects: HashSet<(isize, isize)> = HashSet::new();
+
+    steps.iter().for_each(|step| {
+        // replace the current point with an obstruction and walk the path
+        objects.insert(step.point);
+        let path_info = calculate_path(actor, bounds, &objects);
+        objects.remove(&step.point);
+
+        // When there is no path info, there is a cycle. Add the step as a result
+        if path_info.is_none() {
+            cycle_causing_objects.insert(step.point);
+        }
+    });
+    cycle_causing_objects.len()
+}
+
+#[derive(Eq, PartialEq, Debug, Clone, Copy, Hash)]
 struct WayPoint {
     point: (isize, isize),
     direction: Direction,
 }
 
-fn day06_part2_handler(lines: &mut (dyn Iterator<Item = String>)) -> usize {
-    let path = extract_path(lines);
-    let visited: HashSet<(isize, isize)> = path.iter().map(|w| w.point).collect();
-    visited.len()
+fn walking_path_scenario(
+    lines: &mut (dyn Iterator<Item = String>),
+) -> (
+    Option<Vec<WayPoint>>,
+    Option<WayPoint>,
+    (isize, isize),
+    HashSet<(isize, isize)>,
+) {
+    let (actor, bounds, objects) = extract_actor_bounds_and_objects(lines);
+    if let Some((path, exit)) = calculate_path(actor, bounds, &objects) {
+        return (Some(path), Some(exit), bounds, objects);
+    }
+    (None, None, bounds, objects)
 }
 
-fn extract_path(lines: &mut (dyn Iterator<Item = String>)) -> Vec<WayPoint> {
-    let mut path: Vec<WayPoint> = vec![];
-    let (mut actor, bounds, objects) = extract_actor_bounds_and_objects(lines);
+fn calculate_path(
+    mut actor: (isize, isize),
+    bounds: (isize, isize),
+    objects: &HashSet<(isize, isize)>,
+) -> Option<(Vec<WayPoint>, WayPoint)> {
+    let mut path = vec![];
+    let mut visited: HashSet<WayPoint> = HashSet::new();
     let mut d = Direction::NORTH;
 
     while in_bounds(actor, bounds) {
-        path.push(WayPoint {
+        let way_point = WayPoint {
             point: actor,
             direction: d,
-        });
+        };
+
+        // Whoah! We already visited this waypoint from this direction.
+        if !visited.insert(way_point) {
+            return None;
+        }
+
+        path.push(way_point);
         if is_facing_object(&actor, &d, &objects) {
             d = d.turn_right();
         }
         actor = d.step(actor);
     }
-    path
+
+    // Exit Point
+    let exit = WayPoint {
+        direction: d,
+        point: d.step_backward(actor),
+    };
+
+    Some((path, exit))
 }
 
 /// If the next step would touch an object, then the actor is facing an object
@@ -61,7 +123,7 @@ fn in_bounds(actor: (isize, isize), bounds: (isize, isize)) -> bool {
     0 <= actor.0 && actor.0 <= bounds.0 && 0 <= actor.1 && actor.1 <= bounds.1
 }
 
-#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+#[derive(Debug, Eq, PartialEq, Clone, Copy, Hash)]
 enum Direction {
     NORTH,
     SOUTH,
@@ -79,12 +141,30 @@ impl Direction {
         }
     }
 
+    fn step_backward(&self, (x, y): (isize, isize)) -> (isize, isize) {
+        match *self {
+            Direction::NORTH => (x, y + 1),
+            Direction::SOUTH => (x, y - 1),
+            Direction::EAST => (x - 1, y),
+            Direction::WEST => (x + 1, y),
+        }
+    }
+
     fn turn_right(&self) -> Direction {
         match *self {
             Direction::NORTH => Direction::EAST,
             Direction::EAST => Direction::SOUTH,
             Direction::SOUTH => Direction::WEST,
             Direction::WEST => Direction::NORTH,
+        }
+    }
+
+    fn turn_left(&self) -> Direction {
+        match *self {
+            Direction::NORTH => Direction::WEST,
+            Direction::WEST => Direction::SOUTH,
+            Direction::SOUTH => Direction::EAST,
+            Direction::EAST => Direction::NORTH,
         }
     }
 }
@@ -145,6 +225,13 @@ mod tests {
     }
 
     #[test]
+    fn test_day06_part2_handler() {
+        let lines = sample_data();
+        let calculated = day06_part2_handler(&mut lines.iter().map(|x| x.to_string()));
+        assert_eq!(6, calculated);
+    }
+
+    #[test]
     fn test_extract_actor_bounds_objects() {
         let lines = sample_data();
         let (actor, bounds, objects) =
@@ -182,6 +269,24 @@ mod tests {
         dir = dir.turn_right();
         assert_eq!(dir, Direction::SOUTH);
         point = dir.step(point);
+        assert_eq!((1, 1), point);
+
+        point = dir.step_backward(point);
+        assert_eq!((1, 0), point);
+
+        dir = dir.turn_left();
+        assert_eq!(dir, Direction::EAST);
+        point = dir.step_backward(point);
+        assert_eq!((0, 0), point);
+
+        dir = dir.turn_left();
+        assert_eq!(dir, Direction::NORTH);
+        point = dir.step_backward(point);
+        assert_eq!((0, 1), point);
+
+        dir = dir.turn_left();
+        assert_eq!(dir, Direction::WEST);
+        point = dir.step_backward(point);
         assert_eq!((1, 1), point);
     }
 
