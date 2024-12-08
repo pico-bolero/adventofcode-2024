@@ -52,6 +52,10 @@ fn select_scenario() -> ScenarioConfig {
             file_path: "./data/day04.txt".to_string(),
             process_fn: day04::day04_part1,
         },
+        "day04_part2" => ScenarioConfig {
+            file_path: "./data/day04.txt".to_string(),
+            process_fn: day04::day04_part2,
+        },
         "day05_part1" => ScenarioConfig {
             file_path: "./data/day05.txt".to_string(),
             process_fn: day05::day05_part1,

@@ -7,4 +7,5 @@ pub mod day06;
 pub mod day07;
 pub mod modulus;
 pub mod parser;
+pub mod scan_radius;
 pub mod scan_row;

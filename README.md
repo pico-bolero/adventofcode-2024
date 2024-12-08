@@ -33,3 +33,8 @@ This first entry was pretty straightfoward if you knew how to unzip, sort, and z
 ## Day 06 - Summary
 
 - Always test your functions even if they look easy. You messed them up, I gurantee it.
+
+## Day 07 - Summary
+
+- The challenge was getting a dynamci number of operators. It was easy with two operators, but with 3 it was challege to create a combination of all the different operations.
+- One of the things that was needed was to use function pointer.
