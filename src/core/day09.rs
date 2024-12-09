@@ -1,6 +1,5 @@
 /// Solution:
-// Parse the data into a Vector of Enums of type Block: File{id, size}, FreeSpace{size}
-//   - to calculte the IDs, an external counter will have to be used?
+// Done: Parse the data into a Vector of Enums of type Block: File{id, size}, FreeSpace{size}
 // Iterate over the blocks and expand the File and FreeSpace blocks into new Enums MemItem: FileItem{id} FreeSpaceItem{}
 // Swap FileItems from the End with FreeSpaceItem from the Front
 // Do the final calculation: enumerate each MemItem, multiple the index by FileItem.id
@@ -13,8 +12,24 @@ pub fn day09_part1(lines: &mut dyn Iterator<Item = String>) {
 
 fn day09_part1_handler(lines: &mut (dyn Iterator<Item = String>)) -> u64 {
     let input = lines.next().unwrap(); // There is only one line of input
+    let blocks = parse_input(&input);
+    let mut items: Vec<MemItem> = expand_blocks(&blocks);
 
     todo!()
+}
+
+fn expand_blocks(blocks: &[Block]) -> Vec<MemItem> {
+    blocks
+        .iter()
+        .flat_map(|block| match block {
+            Block::File { id, size } => (0..*size)
+                .map(|_| MemItem::File { id: *id })
+                .collect::<Vec<MemItem>>(),
+            Block::FreeSpace { size } => (0..*size)
+                .map(|_| MemItem::FreeSpace {})
+                .collect::<Vec<MemItem>>(),
+        })
+        .collect()
 }
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
@@ -75,6 +90,32 @@ mod tests {
             Block::File { id: 2, size: 5 },
             Block::FreeSpace { size: 6 },
         ];
-        assert_eq!(calculated, expected);
+        assert_eq!(expected, calculated);
+    }
+
+    #[test]
+    fn test_expand_blocks() {
+        let blocks = vec![
+            Block::File { id: 0, size: 1 },
+            Block::FreeSpace { size: 2 },
+            Block::File { id: 1, size: 3 },
+            Block::FreeSpace { size: 4 },
+        ];
+        let calculated = expand_blocks(&blocks);
+
+        let expected = vec![
+            MemItem::File { id: 0 },
+            MemItem::FreeSpace {},
+            MemItem::FreeSpace {},
+            MemItem::File { id: 1 },
+            MemItem::File { id: 1 },
+            MemItem::File { id: 1 },
+            MemItem::FreeSpace {},
+            MemItem::FreeSpace {},
+            MemItem::FreeSpace {},
+            MemItem::FreeSpace {},
+        ];
+
+        assert_eq!(expected, calculated);
     }
 }
