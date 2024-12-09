@@ -13,9 +13,24 @@ pub fn day09_part1(lines: &mut dyn Iterator<Item = String>) {
 fn day09_part1_handler(lines: &mut (dyn Iterator<Item = String>)) -> u64 {
     let input = lines.next().unwrap(); // There is only one line of input
     let blocks = parse_input(&input);
-    let mut items: Vec<MemItem> = expand_blocks(&blocks);
+    let mut mem: Vec<MemItem> = expand_blocks(&blocks);
+    swap_free_memory(&mut mem);
+    let sum: u64 = checksum(&mem);
+    sum
+}
 
-    todo!()
+fn checksum(mem: &Vec<MemItem>) -> u64 {
+    mem.iter()
+        .enumerate()
+        .map(|(i, m)| match m {
+            MemItem::FreeSpace {} => 0u64,
+            MemItem::File { id } => {
+                let idx: u64 = u64::try_from(i).unwrap();
+                let val: u64 = u64::try_from(*id).unwrap();
+                val * idx
+            }
+        })
+        .sum()
 }
 
 fn expand_blocks(blocks: &[Block]) -> Vec<MemItem> {
@@ -56,8 +71,26 @@ fn parse_input(input: &String) -> Vec<Block> {
             blocks.push(Block::File { id, size });
         }
     });
-
     blocks
+}
+
+fn swap_free_memory(mem: &mut Vec<MemItem>) -> () {
+    let mut left_idx: usize = 0;
+    let mut right_idx: usize = mem.len() - 1;
+
+    while left_idx <= right_idx {
+        // increment until free memory
+        while let Some(MemItem::File { id: _ }) = mem.get(left_idx) {
+            left_idx += 1;
+        }
+        // decrement until free File
+        while let Some(MemItem::FreeSpace {}) = mem.get(right_idx) {
+            right_idx -= 1;
+        }
+        if left_idx < right_idx {
+            mem.swap(left_idx, right_idx);
+        }
+    }
 }
 
 #[cfg(test)]
@@ -75,8 +108,8 @@ mod tests {
     #[test]
     fn test_day09_part1_handler() {
         let lines = sample_data();
-        // let calculated = day09_part1_handler(&mut lines.iter().map(|x| x.to_string()));
-        //assert_eq!(1928, calculated);
+        let calculated = day09_part1_handler(&mut lines.iter().map(|x| x.to_string()));
+        assert_eq!(1928, calculated);
     }
 
     #[test]
@@ -116,6 +149,58 @@ mod tests {
             MemItem::FreeSpace {},
         ];
 
+        assert_eq!(expected, calculated);
+    }
+
+    #[test]
+    fn test_swap_free_memory() {
+        let mut mem = vec![
+            MemItem::File { id: 0 },
+            MemItem::FreeSpace {},
+            MemItem::FreeSpace {},
+            MemItem::File { id: 1 },
+            MemItem::File { id: 1 },
+            MemItem::File { id: 1 },
+            MemItem::FreeSpace {},
+            MemItem::FreeSpace {},
+            MemItem::FreeSpace {},
+            MemItem::FreeSpace {},
+        ];
+
+        let expected = vec![
+            MemItem::File { id: 0 },
+            MemItem::File { id: 1 },
+            MemItem::File { id: 1 },
+            MemItem::File { id: 1 },
+            MemItem::FreeSpace {},
+            MemItem::FreeSpace {},
+            MemItem::FreeSpace {},
+            MemItem::FreeSpace {},
+            MemItem::FreeSpace {},
+            MemItem::FreeSpace {},
+        ];
+
+        swap_free_memory(&mut mem);
+        assert_eq!(expected, mem);
+    }
+
+    #[test]
+    fn test_checksum() {
+        let mem = vec![
+            MemItem::File { id: 0 },
+            MemItem::File { id: 1 },
+            MemItem::File { id: 1 },
+            MemItem::File { id: 1 },
+            MemItem::File { id: 5 },
+            MemItem::FreeSpace {},
+            MemItem::FreeSpace {},
+            MemItem::FreeSpace {},
+            MemItem::FreeSpace {},
+            MemItem::FreeSpace {},
+            MemItem::FreeSpace {},
+        ];
+        let calculated = checksum(&mem);
+        let expected: u64 = (0 * 0) + (1 * 1) + (2 * 1) + (3 * 1) + (4 * 5);
         assert_eq!(expected, calculated);
     }
 }
