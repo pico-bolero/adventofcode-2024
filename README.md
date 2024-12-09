@@ -25,6 +25,7 @@ This first entry was pretty straightfoward if you knew how to unzip, sort, and z
 
 - The scanning window implementation seemed to work well. However, the window needed to be 7x7 so that the centerpoint could radiate out to check all the matches. Checkng every match in the window was a failure.
 - I'm debating on whether padding the input vertically and horizontally would be useful versus handling the edges.
+- Created the scan_radius.rs utility
 
 ## Day 05 - Summary
 
@@ -36,5 +37,6 @@ This first entry was pretty straightfoward if you knew how to unzip, sort, and z
 
 ## Day 07 - Summary
 
-- The challenge was getting a dynamci number of operators. It was easy with two operators, but with 3 it was challege to create a combination of all the different operations.
+- The challenge was getting a dynamic number of operators. It was easy with two operators, but with 3 it was challege to create a combination of all the different operations.
 - One of the things that was needed was to use function pointer.
+- Other solutions worked backwards from the test_value. Checking if the next combination of operator & value was possible before proceeding. This limits the search space
