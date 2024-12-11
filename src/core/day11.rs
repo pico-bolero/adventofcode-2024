@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::core::parser;
 
 /// Receives input and prints output
@@ -13,6 +15,41 @@ fn day11_part1_handler(lines: &mut (dyn Iterator<Item = String>)) -> usize {
         line = generate_next_line(line);
     }
     line.len()
+}
+
+pub fn day11_part2(lines: &mut dyn Iterator<Item = String>) {
+    let result: u64 = day11_part2_handler(lines);
+    println!("Sum {}", result);
+}
+
+fn day11_part2_handler(lines: &mut (dyn Iterator<Item = String>)) -> u64 {
+    let input = lines.next().unwrap(); // There is only one line of input
+    let items: Vec<u64> = parser::parse_delimited_str(&input, " ");
+    let depth = (75 - 1);
+    let mut count = 0u64;
+    let mut cache: HashMap<(u64, u64), u64> = HashMap::new();
+    items.iter().for_each(|x| {
+        count += transform_item(depth, *x, &mut cache);
+    });
+    count
+}
+
+/// Recursively process the item
+fn transform_item(depth: u64, x: u64, cache: &mut HashMap<(u64, u64), u64>) -> u64 {
+    let result = transform_u64(x);
+    if let Some(value) = cache.get(&(depth, x)) {
+        return *value;
+    }
+    if depth == 0 {
+        let num_items: u64 = (result.len()).try_into().unwrap();
+        return num_items;
+    }
+    let mut counter: u64 = 0;
+    for x in result {
+        counter += transform_item(depth - 1, x, cache);
+    }
+    cache.insert((depth, x), counter);
+    counter
 }
 
 fn generate_next_line(line: Vec<u64>) -> Vec<u64> {
@@ -71,6 +108,13 @@ mod tests {
     fn test_day11_part1_handler() {
         let lines = sample_data();
         let calculated = day11_part1_handler(&mut lines.iter().map(|x| x.to_string()));
+        assert_eq!(55312, calculated);
+    }
+
+    #[test]
+    fn test_day11_part2_handler() {
+        let lines = sample_data();
+        let calculated = day11_part2_handler(&mut lines.iter().map(|x| x.to_string()));
         assert_eq!(55312, calculated);
     }
 }
