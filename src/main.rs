@@ -10,6 +10,7 @@ use crate::core::day07;
 use crate::core::day08;
 use crate::core::day09;
 use crate::core::day10;
+use crate::core::day11;
 
 use crate::io::data_loader;
 use std::env;
@@ -99,6 +100,10 @@ fn select_scenario() -> ScenarioConfig {
         "day10_part1" => ScenarioConfig {
             file_path: "./data/day10.txt".to_string(),
             process_fn: day10::day10_part1,
+        },
+        "day11_part1" => ScenarioConfig {
+            file_path: "./data/day11.txt".to_string(),
+            process_fn: day11::day11_part1,
         },
 
         _ => {
