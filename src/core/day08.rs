@@ -10,7 +10,7 @@ pub fn day08_part1(lines: &mut dyn Iterator<Item = String>) {
     println!("Sum {}", result);
 }
 
-fn day08_part1_handler(lines: &mut (dyn Iterator<Item = String>)) -> u64 {
+fn day08_part1_handler(_lines: &mut (dyn Iterator<Item = String>)) -> u64 {
     todo!()
 }
 

@@ -9,6 +9,8 @@ pub mod day08;
 pub mod day09;
 pub mod day10;
 pub mod day11;
+pub mod day14;
+pub mod grid;
 pub mod modulus;
 pub mod parser;
 pub mod scan_radius;

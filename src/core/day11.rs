@@ -25,7 +25,7 @@ pub fn day11_part2(lines: &mut dyn Iterator<Item = String>) {
 fn day11_part2_handler(lines: &mut (dyn Iterator<Item = String>)) -> u64 {
     let input = lines.next().unwrap(); // There is only one line of input
     let items: Vec<u64> = parser::parse_delimited_str(&input, " ");
-    let depth = (75 - 1);
+    let depth = 75 - 1;
     let mut count = 0u64;
     let mut cache: HashMap<(u64, u64), u64> = HashMap::new();
     items.iter().for_each(|x| {
