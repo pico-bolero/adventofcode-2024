@@ -5,9 +5,12 @@
 ///  AoC wants you to do. The use case is for a 'full' grid and not a sparse grid.
 
 /// Using x, y coordinates
-pub struct Point {
-    _x: usize,
-    _y: usize,
+pub struct Point<T>
+where
+    T: Copy,
+{
+    pub x: T,
+    pub y: T,
 }
 
 /*
