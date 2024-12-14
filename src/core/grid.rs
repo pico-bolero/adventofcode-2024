@@ -5,6 +5,8 @@
 ///  AoC wants you to do. The use case is for a 'full' grid and not a sparse grid.
 
 /// Using x, y coordinates
+
+#[derive(Eq, PartialEq, Debug)]
 pub struct Point<T>
 where
     T: Copy,

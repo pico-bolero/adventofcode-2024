@@ -1,16 +1,13 @@
+use crate::core::grid::Point;
+use crate::core::modulus;
 use regex::Regex;
 use std::fmt::Error;
 use std::str::FromStr;
-
-use crate::core::grid;
 /// Day 14 - Approach
 ///  I suspect that each robot will eventually repeat its path. The goal is to figure
 ///  out how many cycles are required before it repeats. Then it doesn't matter
 ///  how many total cycles are requested as you can get the position with a modulus operation
 ///  - there may be a way to figure that out just using delta and modifiers.
-use crate::core::modulus;
-
-use super::grid::Point;
 
 pub fn day14_part1(lines: &mut dyn Iterator<Item = String>) {
     let result = day14_part1_handler(lines, 101, 103, 100);
@@ -22,14 +19,79 @@ fn day14_part1_handler(
     boundary_x: i32,
     boundary_y: i32,
     cycles: i32,
-) -> usize {
+) -> u64 {
     let records: Vec<Record> = lines.flat_map(|x| Record::from_str(x.as_str())).collect();
+    let points: Vec<Point<i32>> = cycle_records(&records, boundary_x, boundary_y, cycles);
+    let safety_factor = calculate_safety_factor(&points, boundary_x, boundary_y);
+    safety_factor
+}
 
-    todo!()
+fn calculate_safety_factor(points: &[Point<i32>], boundary_x: i32, boundary_y: i32) -> u64 {
+    let half_x = (boundary_x - 1) / 2;
+    let half_y = (boundary_y - 1) / 2;
+    let upper_left = (
+        Point { x: 0, y: 0 },
+        Point {
+            x: half_x,
+            y: half_y,
+        },
+    );
+    let upper_right = (
+        Point {
+            x: half_x + 1,
+            y: 0,
+        },
+        Point {
+            x: boundary_x,
+            y: half_y,
+        },
+    );
+    let lower_left = (
+        Point {
+            x: 0,
+            y: half_y + 1,
+        },
+        Point {
+            x: half_x,
+            y: boundary_y,
+        },
+    );
+    let lower_right = (
+        Point {
+            x: half_x + 1,
+            y: half_y + 1,
+        },
+        Point {
+            x: boundary_x,
+            y: boundary_y,
+        },
+    );
+    let ul = points.iter().filter(|x| in_bounds(x, &upper_left)).count();
+    let ur = points.iter().filter(|x| in_bounds(x, &upper_right)).count();
+    let ll = points.iter().filter(|x| in_bounds(x, &lower_left)).count();
+    let lr = points.iter().filter(|x| in_bounds(x, &lower_right)).count();
+    let result = u64::try_from(ul * ur * ll * lr).unwrap();
+    result
+}
+
+fn in_bounds(p: &Point<i32>, bounds: &(Point<i32>, Point<i32>)) -> bool {
+    p.x >= bounds.0.x && p.x < bounds.1.x && p.y >= bounds.0.y && p.y < bounds.1.y
+}
+
+fn cycle_records(
+    records: &Vec<Record>,
+    boundary_x: i32,
+    boundary_y: i32,
+    cycles: i32,
+) -> Vec<Point<i32>> {
+    records
+        .iter()
+        .map(|r| cycle_record(r, boundary_x, boundary_y, cycles))
+        .collect()
 }
 
 // Calculate the end point after a certain numbers of cycles a.k.a steps
-fn cycle_record(r: Record, boundary_x: i32, boundary_y: i32, cycles: i32) -> Point<i32> {
+fn cycle_record(r: &Record, boundary_x: i32, boundary_y: i32, cycles: i32) -> Point<i32> {
     Point {
         x: modulus::modulus(r.start.x + cycles * r.vector.x, boundary_x),
         y: modulus::modulus(r.start.y + cycles * r.vector.y, boundary_y),
@@ -92,13 +154,49 @@ p=9,5 v=-3,-3"
     fn test_day14_part1_handler() {
         let lines = sample_data();
         let calculated = day14_part1_handler(&mut lines.iter().map(|x| x.to_string()), 11, 7, 100);
-        todo!()
+        assert_eq!(12, calculated);
+    }
+
+    #[test]
+    fn test_cycle_records() {
+        let lines = sample_data();
+        let records: Vec<Record> = lines
+            .iter()
+            .flat_map(|x| Record::from_str(x.as_str()))
+            .collect();
+        let points: Vec<Point<i32>> = cycle_records(&records, 11, 7, 100);
+        // spot checks
+        /* - all possible locations and counts
+        ......2..1.
+        ...........
+        1..........
+        .11........
+        .....1.....
+        ...12......
+        .1....1....
+        */
+        assert!(points.iter().any(|x| *x == Point { x: 1, y: 6 }));
+        assert!(points.iter().any(|x| *x == Point { x: 9, y: 0 }));
+        assert_eq!(
+            2,
+            points
+                .iter()
+                .filter(|x: &&Point<i32>| **x == Point { x: 6, y: 0 })
+                .count()
+        );
+        assert_eq!(
+            2,
+            points
+                .iter()
+                .filter(|x: &&Point<i32>| **x == Point { x: 4, y: 5 })
+                .count()
+        );
     }
 
     #[test]
     fn test_cycle_record() {
         let r = Record::from_str("p=2,4 v=2,-3").unwrap();
-        let p = cycle_record(r, 11, 7, 5);
+        let p = cycle_record(&r, 11, 7, 5);
         assert_eq!(1, p.x);
         assert_eq!(3, p.y);
     }

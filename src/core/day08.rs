@@ -28,7 +28,7 @@ mod tests {
 
     #[test]
     fn test_day08_part1_handler() {
-        let lines = sample_data();
+        let _lines = sample_data();
         // let calculated = day08_part1_handler(&mut lines.iter().map(|x| x.to_string()));
         //assert_eq!(14, calculated);
     }

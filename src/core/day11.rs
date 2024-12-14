@@ -18,14 +18,14 @@ fn day11_part1_handler(lines: &mut (dyn Iterator<Item = String>)) -> usize {
 }
 
 pub fn day11_part2(lines: &mut dyn Iterator<Item = String>) {
-    let result: u64 = day11_part2_handler(lines);
+    let result: u64 = day11_part2_handler(lines, 75);
     println!("Sum {}", result);
 }
 
-fn day11_part2_handler(lines: &mut (dyn Iterator<Item = String>)) -> u64 {
+fn day11_part2_handler(lines: &mut (dyn Iterator<Item = String>), depth: u64) -> u64 {
     let input = lines.next().unwrap(); // There is only one line of input
     let items: Vec<u64> = parser::parse_delimited_str(&input, " ");
-    let depth = 75 - 1;
+    let depth = depth - 1;
     let mut count = 0u64;
     let mut cache: HashMap<(u64, u64), u64> = HashMap::new();
     items.iter().for_each(|x| {
@@ -114,7 +114,7 @@ mod tests {
     #[test]
     fn test_day11_part2_handler() {
         let lines = sample_data();
-        let calculated = day11_part2_handler(&mut lines.iter().map(|x| x.to_string()));
+        let calculated = day11_part2_handler(&mut lines.iter().map(|x| x.to_string()), 25);
         assert_eq!(55312, calculated);
     }
 }
