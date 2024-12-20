@@ -62,7 +62,7 @@ fn line_value2(line: String) -> u32 {
 
     commands.sort_by(|a, b| CommandType::get_idx(a).cmp(CommandType::get_idx(b)));
 
-    let mut enabled = true;
+    let mut enabled: bool = true;
     let mut total: u32 = 0;
     for cmd in commands {
         match cmd {
