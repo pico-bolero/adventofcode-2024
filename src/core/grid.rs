@@ -185,21 +185,23 @@ mod tests {
     /// Exercises getting a window around a point in a 2d array
     fn test_array2d_relative_area_for_point_and_radius() {
         let array_2d = Array2D::new(3, 3, GridItem { item: '_' });
-        let calculated = array_2d.window_for_point_radius(Point { x: 0, y: 0 }, 1);
 
-        // There are points that are not in the 2d array and those should be None
+        // This window's centerpoint is at the origin, which puts the first row and columm out of bounds
+        // and those values should be None
+        let calculated = array_2d.window_for_point_radius(Point { x: 0, y: 0 }, 1);
         let size = 3;
-        let mut expected: Vec<Vec<Option<&GridItem<char>>>> = vec![vec![None; size]; size];
+        let mut expected: Vec<Vec<Option<&GridItem<char>>>> = vec![vec![None; size]; size]; // initialze with None
         expected[1][1] = Some(&GridItem { item: '_' });
         expected[1][2] = Some(&GridItem { item: '_' });
         expected[2][1] = Some(&GridItem { item: '_' });
         expected[2][2] = Some(&GridItem { item: '_' });
         assert_eq!(expected, calculated);
 
+        // This window's center point is out of bounds and only captures the lower-right value of the 2d array
         let array_2d = Array2D::new(3, 3, GridItem { item: '_' });
         let calculated = array_2d.window_for_point_radius(Point { x: 3, y: 3 }, 1);
         let size = 3;
-        let mut expected: Vec<Vec<Option<&GridItem<char>>>> = vec![vec![None; size]; size];
+        let mut expected: Vec<Vec<Option<&GridItem<char>>>> = vec![vec![None; size]; size]; // initialze with None
         expected[0][0] = Some(&GridItem { item: '_' });
         assert_eq!(expected, calculated);
     }
